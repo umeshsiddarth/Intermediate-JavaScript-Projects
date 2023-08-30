@@ -57,10 +57,15 @@ const inputLoanAmount = document.querySelector(".form__input--loan-amount");
 const inputCloseUsername = document.querySelector(".form__input--user");
 const inputClosePin = document.querySelector(".form__input--pin");
 
-// Transaction history
-const displayTransactions = function (account) {
+// Transaction history and sorting
+const displayTransactions = function (account, sort = false) {
   containerMovements.innerHTML = "";
-  account.transactions.forEach(function (trans, i) {
+
+  const trans = sort
+    ? account.transactions.slice().sort((cur, next) => cur - next)
+    : account.transactions;
+  // Here we use slice to make a shallow copy of an array as we don't want to mutate the original array. Instead of spread operator we use slice to chain methods.
+  trans.forEach(function (trans, i) {
     const type = trans > 0 ? "deposit" : "withdrawal";
 
     const html =
@@ -220,3 +225,59 @@ btnTransfer.addEventListener("click", (e) => {
     console.log(`Invalid Attempt`);
   }
 });
+
+// Loan Request (Bank provides loan only if there is atleast 1 deposit and the deposit should be atleast 10% of the requested loan amount)
+btnLoan.addEventListener("click", (e) => {
+  e.preventDefault();
+  const reqLoan = Number(inputLoanAmount.value);
+  inputLoanAmount.value = "";
+  if (
+    reqLoan > 0 &&
+    activeAccount.transactions.some((trans) => trans >= reqLoan * 0.1)
+  ) {
+    activeAccount.transactions.push(reqLoan);
+    updateUI(activeAccount);
+  } else {
+    console.log("Loan Rejected");
+  }
+});
+
+// Closing Account
+btnClose.addEventListener("click", function (e) {
+  e.preventDefault();
+  inputClosePin.blur();
+  if (
+    inputCloseUsername.value === activeAccount.username &&
+    Number(inputClosePin.value) === activeAccount.pin
+  ) {
+    const accToDel = accounts.findIndex(
+      (acc) => acc.username === activeAccount.username
+    );
+    accounts.splice(accToDel, 1);
+    // inputCloseUsername.value = inputClosePin.value = "";
+    containerApp.style.opacity = 0;
+    labelWelcome.textContent = `${
+      activeAccount.owner.split(" ")[0]
+    }'s Account Deleted`;
+  } else {
+    console.log("Cannot delete other accounts");
+    inputCloseUsername.value = inputClosePin.value = "";
+  }
+});
+
+// sorting
+let sorted = false; // We are using a state variable to remember the state of the sort.
+btnSort.addEventListener("click", (e) => {
+  e.preventDefault();
+  displayTransactions(activeAccount, !sorted);
+  sorted = !sorted;
+});
+
+// * Exploring Array.from method. This is not working
+
+// labelBalance.addEventListener("click", function () {
+//   let transactionsUI = Array.from(
+//     document.querySelectorAll(".movements__value")
+//   );
+//   console.log(transactionsUI);
+// });
