@@ -93,12 +93,18 @@ const displayTransactions = function (account, sort = false) {
   trans.forEach(function (trans, i) {
     const type = trans > 0 ? "deposit" : "withdrawal";
 
+    const date = new Date(account.movementsDates[i]);
+    const day = `${date.getDate()}`.padStart(2, 0);
+    const month = `${date.getMonth() + 1}`.padStart(2, 0);
+    const year = `${date.getFullYear()}`;
+    const displayDate = `${day}/${month}/${year}`;
     const html =
       type === "withdrawal"
         ? `
         <div class="movements__row">
             <div class = "movements__type movements__type--${type}">
             ${i + 1} ${type} </div>
+            <div class = 'movements_date'>${displayDate}</div>
             <div class = "movements__value--${type}">INR ${Math.abs(
             trans
           )}</div>
@@ -108,6 +114,7 @@ const displayTransactions = function (account, sort = false) {
         <div class="movements__row">
             <div class = "movements__type movements__type--interest">
             ${i + 1} INTEREST </div>
+            <div class = 'movements_date'>${displayDate}</div>
             <div class = "movements__value--${type}">INR ${
             (trans * account.interestRate) / 100
           }</div>
@@ -115,6 +122,7 @@ const displayTransactions = function (account, sort = false) {
         <div class="movements__row">
             <div class = "movements__type movements__type--${type}">
             ${i + 1} ${type} </div>
+            <div class = 'movements_date'>${displayDate}</div>
             <div class = "movements__value--${type}">INR ${Math.abs(
             trans
           )}</div>
@@ -146,10 +154,10 @@ const displaySummary = function (account) {
   account.balance =
     account.transactions.reduce((acc, cur) => acc + cur, 0) + interest;
 
-  labelSumIn.textContent = `INR ${income}`;
-  labelSumOut.textContent = `INR ${outgoing}`;
-  labelSumInterest.textContent = `INR ${interest}`;
-  labelBalance.textContent = `INR ${account.balance}`;
+  labelSumIn.textContent = `INR ${income.toFixed(2)}`;
+  labelSumOut.textContent = `INR ${outgoing.toFixed(2)}`;
+  labelSumInterest.textContent = `INR ${interest.toFixed(2)}`;
+  labelBalance.textContent = `INR ${account.balance.toFixed(2)}`;
 };
 
 // Computing Usernames
@@ -176,7 +184,7 @@ const createUserName = function (accs) {
   });
 };
 createUserName(accounts);
-// console.log(accounts);
+console.log(accounts);
 
 // Calculate the balance
 
@@ -245,6 +253,10 @@ btnTransfer.addEventListener("click", (e) => {
   ) {
     activeAccount.transactions.push(-amount);
     receiverAcc.transactions.push(amount);
+
+    activeAccount.movementsDates.push(new Date().toISOString());
+    receiverAcc.movementsDates.push(new Date().toISOString());
+
     updateUI(activeAccount);
   } else {
     console.log(`Invalid Attempt`);
@@ -254,13 +266,14 @@ btnTransfer.addEventListener("click", (e) => {
 // Loan Request (Bank provides loan only if there is atleast 1 deposit and the deposit should be atleast 10% of the requested loan amount)
 btnLoan.addEventListener("click", (e) => {
   e.preventDefault();
-  const reqLoan = Number(inputLoanAmount.value);
+  const reqLoan = Math.floor(inputLoanAmount.value);
   inputLoanAmount.value = "";
   if (
     reqLoan > 0 &&
     activeAccount.transactions.some((trans) => trans >= reqLoan * 0.1)
   ) {
     activeAccount.transactions.push(reqLoan);
+    activeAccount.movementsDates.push(new Date().toISOString());
     updateUI(activeAccount);
   } else {
     console.log("Loan Rejected");
@@ -326,3 +339,11 @@ const bankDepositSum = accounts
     return acc + cur;
   }, 0);
 console.log(bankDepositSum);
+
+// Implementing Dates:
+const now = new Date();
+const day = `${now.getDate()}`.padStart(2, 0);
+const month = `${now.getMonth() + 1}`.padStart(2, 0);
+const year = now.getFullYear();
+
+labelDate.textContent = `${day}/${month}/${year}`;
