@@ -111,3 +111,92 @@ tabsContainer.addEventListener("click", function (e) {
     .querySelector(`.operations__content--${clicked.dataset.tab}`)
     .classList.add("operations__content--active");
 });
+
+// ---------------------------------------------------------------------------------------------------------
+
+// Menu Fade Animation
+const nav = document.querySelector(".nav");
+
+function handleHover(e, opacity) {
+  if (e.target.classList.contains("nav__link")) {
+    const clicked = e.target;
+    const siblings = clicked.closest("nav").querySelectorAll(".nav__link");
+    const logo = clicked.closest("nav").querySelector("img");
+
+    siblings.forEach((navLink) => {
+      if (navLink !== clicked) {
+        navLink.style.opacity = opacity;
+      }
+    });
+    logo.style.opacity = opacity;
+  }
+}
+
+nav.addEventListener("mouseover", function (e) {
+  handleHover(e, 0.5);
+});
+nav.addEventListener("mouseout", function (e) {
+  handleHover(e, 1);
+});
+
+// First unoptimized code
+// nav.addEventListener("mouseover", (e) => {
+// if (e.target.classList.contains("nav__link")) {
+//   const clicked = e.target;
+//   const siblings = clicked.closest(".nav").querySelectorAll(".nav__link");
+//   const logo = clicked.closest("nav").querySelector("img");
+//   siblings.forEach((navLink) => {
+//     if (navLink !== clicked) navLink.style.opacity = 0.5;
+//   });
+//   logo.style.opacity = 0.5;
+// }
+// });
+// mouseover is similar to mouseenter where mouseenter don't bubble and mouseover bubbles.
+// nav.addEventListener("mouseout", (e) => {
+// if (e.target.classList.contains("nav__link")) {
+//   const clicked = e.target;
+//   const siblings = clicked.closest("nav").querySelectorAll(".nav__link");
+//   const logo = clicked.closest("nav").querySelector("img");
+//   siblings.forEach((navLink) => {
+//     if (navLink !== clicked) {
+//       navLink.style.opacity = 1;
+//     }
+//   });
+//   logo.style.opacity = 1;
+// }
+// });
+
+// ---------------------------------------------------------------------------------------------------------
+
+// Implement Sticky navigation
+// Using Scroll event to perform certain action on a page leads to bad performance as the system tracks scroll event very rapidly.
+// const initialCoords = section1.getBoundingClientRect();
+
+// window.addEventListener("scroll", function () {
+//   if (window.scrollY > initialCoords.top) {
+//     nav.classList.add("sticky");
+//   } else if (this.window.scrollY < initialCoords.top) {
+//     nav.classList.remove("sticky");
+//   }
+// });
+
+// Better way to implement sticky navigation (Intersection Observer API)
+// We implement Observer on header as we need to make the menu sticky when the header element is out of viewport.
+const header = document.querySelector(".header");
+const navHeight = nav.getBoundingClientRect();
+
+const stickyNav = function (entries) {
+  const [entry] = entries;
+  if (!entry.isIntersecting) nav.classList.add("sticky");
+  else nav.classList.remove("sticky");
+};
+const headerObserver = new IntersectionObserver(stickyNav, {
+  root: null,
+  threshold: 0,
+  rootMargin: `-${navHeight.height}px`,
+});
+headerObserver.observe(header);
+
+// ---------------------------------------------------------------------------------------------------------
+
+// Revealing sections on Scroll (Intersection Observer API)
